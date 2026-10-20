@@ -385,6 +385,13 @@ function paintTime() {
 }
 function tick() { paintTime(); if (!audio.paused) raf = requestAnimationFrame(tick); }
 
+// Loading a new clip drops the browser's queued "pause" event, so the button
+// is painted from audio.paused instead of trusting events alone.
+function paintPlayBtn() {
+  playBtn.classList.toggle("playing", !audio.paused);
+  playBtn.setAttribute("aria-label", audio.paused ? "Play" : "Pause");
+}
+
 function setClip(file) {
   const src = AUDIO_DIR + file;
   if (audio.getAttribute("src") !== src) {
@@ -393,6 +400,7 @@ function setClip(file) {
     audio.load();
   }
   atTop = true;
+  paintPlayBtn();
   paintTime();
   paintPlays();
 }
@@ -444,17 +452,15 @@ audio.addEventListener("play", () => {
     atTop = false;
     countListen();
   }
-  playBtn.classList.add("playing");
-  playBtn.setAttribute("aria-label", "Pause");
+  paintPlayBtn();
   cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
 });
 audio.addEventListener("pause", () => {
-  playBtn.classList.remove("playing");
-  playBtn.setAttribute("aria-label", "Play");
+  paintPlayBtn();
   paintTime();
 });
-audio.addEventListener("ended", () => { atTop = true; });
+audio.addEventListener("ended", () => { atTop = true; paintPlayBtn(); });
 audio.addEventListener("loadedmetadata", paintTime);
 audio.addEventListener("seeked", paintTime);
 
