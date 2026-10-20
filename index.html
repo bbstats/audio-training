@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>What's Missing? Pre-Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column, one step at a time, like reading down a single channel strip */
+:root {
+  --bg: #e8ebee;
+  --panel: #ffffff;
+  --ink: #1a2027;
+  --muted: #56616c;
+  --line: #cbd2d8;
+  --tape: #f4d35e;        /* console scribble-strip tape */
+  --tape-ink: #1a2027;
+  --btn: #1a2027;
+  --btn-ink: #ffffff;
+  --led-off: #cbd2d8;
+  --led-on: #2f9e6a;
+  --led-now: #e0a100;
+  --bad: #b3261e;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #13171c;
+    --panel: #1c2229;
+    --ink: #e6eaed;
+    --muted: #9aa5af;
+    --line: #313a43;
+    --tape: #f2c94c;
+    --tape-ink: #13171c;
+    --btn: #e6eaed;
+    --btn-ink: #13171c;
+    --led-off: #313a43;
+    --led-on: #4cc38a;
+    --led-now: #f2b53a;
+    --bad: #f2726b;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+strong { font-weight: 600; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.5 var(--body);
+  -webkit-text-size-adjust: 100%;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) max(32px, env(safe-area-inset-bottom, 0px));
+}
+.wrap { max-width: 34rem; margin: 0 auto; display: grid; gap: 1.25rem; }
+
+/* header + progress LEDs */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.eyebrow {
+  font: 600 0.8125rem/1 var(--display);
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+}
+.leds { display: flex; gap: 4px; }
+.led { width: 14px; height: 8px; border-radius: 2px; background: var(--led-off); }
+.led.on { background: var(--led-on); }
+.led.now { background: var(--led-now); }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.5rem 1.25rem;
+  display: grid; gap: 1.25rem;
+}
+h1, h2 {
+  font-family: var(--display); font-weight: 700; line-height: 1.05;
+  margin: 0; text-wrap: balance; letter-spacing: 0.01em;
+}
+h1 { font-size: clamp(2.25rem, 9vw, 3rem); text-transform: uppercase; }
+h2 { font-size: 1.75rem; text-transform: uppercase; }
+p { margin: 0; }
+.lede { color: var(--muted); }
+.steps { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+.note { font-size: 0.9375rem; color: var(--muted); }
+
+label.field { display: grid; gap: 0.375rem; font-weight: 600; }
+input[type="text"] {
+  font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.75rem 0.875rem; width: 100%;
+}
+input[type="text"]:focus-visible { outline: 2px solid var(--led-now); outline-offset: 1px; }
+.err { color: var(--bad); font-size: 0.9375rem; }
+
+/* buttons */
+.btn {
+  font: 700 1.125rem/1 var(--display); letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--btn); color: var(--btn-ink);
+  border: 0; border-radius: 8px; padding: 1rem 1.25rem; width: 100%;
+  cursor: pointer; touch-action: manipulation;
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn.secondary { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+.btn:focus-visible, .play:focus-visible, .icon-btn:focus-visible { outline: 3px solid var(--led-now); outline-offset: 2px; }
+.row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 12rem; }
+
+/* player */
+.player { display: flex; align-items: center; gap: 0.875rem; }
+.play {
+  flex: none; width: 64px; height: 64px; border-radius: 50%;
+  border: 0; background: var(--btn); color: var(--btn-ink);
+  display: grid; place-items: center; cursor: pointer; touch-action: manipulation;
+}
+.play svg { width: 26px; height: 26px; fill: currentColor; }
+.play .i-pause { display: none; }
+.play.playing .i-play { display: none; }
+.play.playing .i-pause { display: block; }
+.track { flex: 1; min-width: 0; display: grid; gap: 0.25rem; }
+.time {
+  display: flex; justify-content: space-between;
+  font: 500 0.8125rem/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.icon-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 50%;
+  border: 0; background: transparent; color: var(--muted); cursor: pointer;
+  display: grid; place-items: center;
+}
+.icon-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0;
+  background: transparent; cursor: pointer; --p: 0%;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(to right, var(--ink) var(--p), var(--line) var(--p));
+}
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--line); }
+input[type="range"]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--ink); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; margin-top: -6px;
+  border-radius: 50%; background: var(--ink); border: 3px solid var(--panel);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 3px solid var(--panel);
+}
+input[type="range"]:focus-visible { outline: 2px solid var(--led-now); outline-offset: 2px; border-radius: 4px; }
+.slot { display: grid; gap: 0.75rem; }
+.plays { font: 500 0.8125rem/1 var(--mono); color: var(--muted); padding-left: calc(64px + 0.875rem); }
+
+/* answer choices, styled as console scribble strips */
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { font-weight: 600; padding: 0; margin-bottom: 0.75rem; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.choice:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (max-width: 330px) { .choices { grid-template-columns: 1fr; } }
+.choice { position: relative; display: block; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice span {
+  display: flex; align-items: center; min-height: 3.25rem; height: 100%;
+  padding: 0.5rem 0.75rem; border-radius: 4px;
+  font: 600 1.0625rem/1.15 var(--display); letter-spacing: 0.04em; text-transform: uppercase;
+  background: var(--bg); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.choice input:checked + span { background: var(--tape); color: var(--tape-ink); box-shadow: none; }
+.choice input:focus-visible + span { outline: 3px solid var(--led-now); outline-offset: 2px; }
+
+textarea {
+  width: 100%; min-height: 19rem; resize: vertical;
+  font: 500 0.8125rem/1.5 var(--mono); color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 0.75rem;
+}
+.status { display: flex; align-items: center; gap: 0.625rem; font-weight: 600; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--led-now); flex: none; }
+.status.ok .dot { background: var(--led-on); }
+.status.bad .dot { background: var(--bad); }
+.linkish {
+  font: inherit; font-size: 0.9375rem; color: var(--muted); background: none; border: 0; padding: 0;
+  text-decoration: underline; cursor: pointer; justify-self: start;
+}
+
+/* confirm dialog */
+.modal {
+  position: fixed; inset: 0; z-index: 10;
+  display: grid; place-items: center;
+  background: rgb(10 14 18 / 0.6);
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+}
+.modal .panel { max-width: 26rem; width: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .choice span, .play { transition: background-color 120ms, opacity 120ms; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <span class="eyebrow">Ear training · Pre-test</span>
+    <div class="leds" id="leds" aria-hidden="true"></div>
+  </header>
+
+  <!-- 1. Intro -->
+  <section class="panel" id="v-intro" hidden>
+    <h1>What's missing?</h1>
+    <p class="lede">A short listening test. Use headphones or good speakers if you can.</p>
+    <ol class="steps">
+      <li>First you'll hear the <strong>full mix</strong>. Listen as many times as you like.</li>
+      <li>Then you'll hear <strong id="take-count">7</strong> takes. In each one, an instrument has been removed. Pick which one.</li>
+      <li>Once you leave the full mix you can't go back to it, and each answer locks when you move on.</li>
+    </ol>
+    <p class="note">Your name and answers are sent to the person running this test when you finish.</p>
+    <form id="intro-form" novalidate>
+      <div style="display:grid;gap:1rem">
+        <label class="field" for="name">Your name
+          <input type="text" id="name" autocomplete="name" maxlength="80" required>
+        </label>
+        <p class="err" id="name-err" hidden>Enter your name so your answers can be matched to you.</p>
+        <button class="btn" type="submit">Start with the full mix</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 2. Baseline -->
+  <section class="panel" id="v-baseline" hidden>
+    <h2>Full mix</h2>
+    <p class="lede">Everything is in this one. Learn it well. Replay and scrub as much as you like.</p>
+    <div class="slot"></div>
+    <button class="btn" id="to-takes" type="button">Continue to the takes</button>
+  </section>
+
+  <!-- 3. Takes -->
+  <section class="panel" id="v-take" hidden>
+    <h2 id="take-title">Take 1 of 7</h2>
+    <div class="slot"></div>
+    <fieldset>
+      <legend>What's been removed?</legend>
+      <div class="choices" id="choices"></div>
+    </fieldset>
+    <button class="btn" id="next" type="button" disabled>Lock in &amp; next take</button>
+  </section>
+
+  <!-- 4. Done -->
+  <section class="panel" id="v-done" hidden>
+    <h2>All done</h2>
+    <div class="status" id="send-status" role="status"><span class="dot"></span><span id="send-msg">Sending your answers…</span></div>
+    <div id="fallback" hidden style="display:grid;gap:0.75rem">
+      <p>Copy your answers below and send them to the person who gave you this test.</p>
+      <textarea id="results-text" readonly aria-label="Your answers"></textarea>
+      <div class="row">
+        <button class="btn" id="copy" type="button">Copy answers</button>
+        <button class="btn secondary" id="retry" type="button">Try sending again</button>
+      </div>
+    </div>
+    <button class="linkish" id="reset" type="button" hidden>Start over for a new person</button>
+  </section>
+
+  <!-- shared player, moved into whichever step is showing -->
+  <div id="player-home" hidden>
+    <div class="player" id="player">
+      <button class="play" id="play" type="button" aria-label="Play">
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg>
+      </button>
+      <div class="track">
+        <input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="Playback position">
+        <div class="time"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+      </div>
+      <button class="icon-btn" id="restart" type="button" aria-label="Play from the top">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg>
+      </button>
+    </div>
+    <p class="plays" id="plays"></p>
+  </div>
+</main>
+
+<div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="panel">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p>You can't go back. The full mix won't be available again once the takes start.</p>
+    <div class="row">
+      <button class="btn secondary" id="confirm-no" type="button">Keep listening</button>
+      <button class="btn" id="confirm-yes" type="button">Yes, start the takes</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio" preload="auto"></audio>
+
+<script>
+// ---- Settings -------------------------------------------------------------
+// Finished results are POSTed here as JSON. FormSubmit emails them on to the
+// address in the URL. Leave empty to skip auto-send; the participant then
+// gets a copy-and-send box instead (they also get it if a send fails).
+const SUBMIT_URL = "https://formsubmit.co/ajax/nathanedwardwalker@gmail.com";
+// The takes play in one fixed shuffled order, the same for everyone. Change
+// the seed to get a different order; set it to null for plain a-to-g order.
+const SHUFFLE_SEED = 23;
+
+const BASELINE = "baseline.mp3";
+const TAKES = ["take_a.mp3", "take_b.mp3", "take_c.mp3", "take_d.mp3", "take_e.mp3", "take_f.mp3", "take_g.mp3"];
+const OPTIONS = ["Overheads", "Kick", "Snare", "Toms", "Rhythm Electric Guitars", "Lead Electric Guitar", "Bass Guitar"];
+const AUDIO_DIR = "audio/";
+const STORE_KEY = "whats-missing-pretest-v1";
+
+// ---- State (kept in localStorage so a reload resumes where they were) ----
+const $ = (sel) => document.querySelector(sel);
+
+// Seeded PRNG (mulberry32), so the shuffle comes out the same every time.
+function seededRandom(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffled(list, seed) {
+  const a = list.slice();
+  const rand = seededRandom(seed);
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const TAKE_ORDER = SHUFFLE_SEED == null ? TAKES.slice() : shuffled(TAKES, SHUFFLE_SEED);
+
+function freshState() {
+  return {
+    phase: "intro", name: "", startedAt: null, finishedAt: null,
+    order: TAKE_ORDER.slice(),
+    idx: 0, pick: null, plays: 0, baselinePlays: 0, answers: [], sent: false,
+  };
+}
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && Array.isArray(s.order) && s.order.length === TAKES.length) return s;
+  } catch (e) {}
+  return null;
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+let state = load() || freshState();
+
+// ---- Player ---------------------------------------------------------------
+const audio = $("#audio");
+const playBtn = $("#play");
+const seek = $("#seek");
+let atTop = true;      // next play counts as a fresh listen
+let dragging = false;
+let raf = 0;
+
+const fmt = (t) => {
+  if (!isFinite(t)) t = 0;
+  const s = Math.floor(t);
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+};
+
+function paintTime() {
+  const d = audio.duration || 0;
+  const t = audio.currentTime || 0;
+  if (!dragging) seek.value = d ? Math.round((t / d) * 1000) : 0;
+  seek.style.setProperty("--p", (seek.value / 10) + "%");
+  $("#cur").textContent = fmt(dragging && d ? (seek.value / 1000) * d : t);
+  $("#dur").textContent = fmt(d);
+}
+function tick() { paintTime(); if (!audio.paused) raf = requestAnimationFrame(tick); }
+
+function setClip(file) {
+  const src = AUDIO_DIR + file;
+  if (audio.getAttribute("src") !== src) {
+    audio.pause();
+    audio.setAttribute("src", src);
+    audio.load();
+  }
+  atTop = true;
+  paintTime();
+  paintPlays();
+}
+
+function paintPlays() {
+  const n = state.phase === "baseline" ? state.baselinePlays : state.plays;
+  $("#plays").textContent = n === 0 ? "Not played yet" : "Played " + n + (n === 1 ? " time" : " times");
+}
+
+playBtn.addEventListener("click", () => {
+  if (audio.paused) {
+    audio.play().catch(() => {
+      $("#plays").textContent = "Couldn't play this clip. Check your connection and tap play again.";
+      audio.load();
+    });
+  } else {
+    audio.pause();
+  }
+});
+// Back to the top counts as a fresh listen: now if playing, else on next play.
+function backToTop() {
+  if (audio.paused) { atTop = true; return; }
+  atTop = false;
+  countListen();
+}
+function countListen() {
+  if (state.phase === "baseline") state.baselinePlays++; else state.plays++;
+  save();
+  paintPlays();
+}
+$("#restart").addEventListener("click", () => {
+  audio.currentTime = 0;
+  backToTop();
+  if (audio.paused) playBtn.click(); else paintTime();
+});
+seek.addEventListener("input", () => {
+  dragging = true;
+  paintTime();
+});
+seek.addEventListener("change", () => {
+  const d = audio.duration;
+  if (d) audio.currentTime = (seek.value / 1000) * d;
+  if (seek.value < 5) backToTop();
+  dragging = false;
+  paintTime();
+});
+audio.addEventListener("play", () => {
+  if (atTop) {
+    atTop = false;
+    countListen();
+  }
+  playBtn.classList.add("playing");
+  playBtn.setAttribute("aria-label", "Pause");
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(tick);
+});
+audio.addEventListener("pause", () => {
+  playBtn.classList.remove("playing");
+  playBtn.setAttribute("aria-label", "Play");
+  paintTime();
+});
+audio.addEventListener("ended", () => { atTop = true; });
+audio.addEventListener("loadedmetadata", paintTime);
+audio.addEventListener("seeked", paintTime);
+
+function mountPlayer(section) {
+  const home = $("#player-home");
+  section.querySelector(".slot").append($("#player"), $("#plays"));
+  home.hidden = true;
+}
+
+// ---- Views ----------------------------------------------------------------
+const views = ["intro", "baseline", "take", "done"];
+
+function paintLeds() {
+  const leds = $("#leds");
+  const total = TAKES.length + 1;
+  // position: 0 = full mix, 1..n = takes, n+1 = done
+  let pos = -1;
+  if (state.phase === "baseline") pos = 0;
+  if (state.phase === "take") pos = state.idx + 1;
+  if (state.phase === "done") pos = total;
+  leds.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const el = document.createElement("span");
+    el.className = "led" + (i < pos ? " on" : i === pos ? " now" : "");
+    leds.append(el);
+  }
+}
+
+function render() {
+  for (const v of views) $("#v-" + v).hidden = state.phase !== v;
+  paintLeds();
+  $("#take-count").textContent = TAKES.length;
+
+  if (state.phase === "intro") {
+    audio.pause();
+    $("#name").value = state.name || "";
+  }
+  if (state.phase === "baseline") {
+    mountPlayer($("#v-baseline"));
+    setClip(BASELINE);
+  }
+  if (state.phase === "take") {
+    mountPlayer($("#v-take"));
+    setClip(state.order[state.idx]);
+    $("#take-title").textContent = "Take " + (state.idx + 1) + " of " + TAKES.length;
+    const box = $("#choices");
+    box.innerHTML = "";
+    OPTIONS.forEach((opt, i) => {
+      const label = document.createElement("label");
+      label.className = "choice";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = "pick"; input.value = opt; input.id = "pick-" + i;
+      input.checked = state.pick === opt;
+      input.addEventListener("change", () => { state.pick = opt; save(); $("#next").disabled = false; });
+      const span = document.createElement("span");
+      span.textContent = opt;
+      label.append(input, span);
+      box.append(label);
+    });
+    const last = state.idx === TAKES.length - 1;
+    $("#next").textContent = last ? "Lock in & finish" : "Lock in & next take";
+    $("#next").disabled = !state.pick;
+  }
+  if (state.phase === "done") {
+    audio.pause();
+    $("#results-text").value = resultsText();
+    if (state.sent) showSent(); else submit();
+  }
+}
+
+// intro -> baseline
+$("#intro-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#name").value.trim();
+  $("#name-err").hidden = !!name;
+  if (!name) { $("#name").focus(); return; }
+  state.name = name;
+  state.phase = "baseline";
+  state.startedAt = new Date().toISOString();
+  save();
+  render();
+});
+
+// baseline -> confirm -> takes
+const modal = $("#confirm");
+$("#to-takes").addEventListener("click", () => { modal.hidden = false; $("#confirm-no").focus(); });
+$("#confirm-no").addEventListener("click", () => { modal.hidden = true; $("#to-takes").focus(); });
+modal.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#confirm-no").click(); });
+modal.addEventListener("click", (e) => { if (e.target === modal) $("#confirm-no").click(); });
+$("#confirm-yes").addEventListener("click", () => {
+  modal.hidden = true;
+  audio.pause();
+  state.phase = "take";
+  state.idx = 0; state.pick = null; state.plays = 0;
+  save();
+  render();
+  window.scrollTo(0, 0);
+});
+
+// take -> next take / done
+$("#next").addEventListener("click", () => {
+  if (!state.pick) return;
+  audio.pause();
+  state.answers.push({ file: state.order[state.idx], answer: state.pick, plays: state.plays });
+  state.idx++;
+  state.pick = null;
+  state.plays = 0;
+  if (state.idx >= TAKES.length) {
+    state.phase = "done";
+    state.finishedAt = new Date().toISOString();
+  }
+  save();
+  render();
+  window.scrollTo(0, 0);
+});
+
+// ---- Results --------------------------------------------------------------
+const playsLabel = (n) => n + (n === 1 ? " play" : " plays");
+
+function byFile() {
+  return state.answers.slice().sort((a, b) => a.file.localeCompare(b.file));
+}
+
+function resultsText() {
+  const lines = [
+    "What's Missing? pre-test",
+    "Name: " + state.name,
+    "Finished: " + (state.finishedAt || ""),
+    "Full mix plays: " + state.baselinePlays,
+    "",
+    "Answers by file:",
+    ...byFile().map((a) => a.file + ": " + a.answer + "  (" + playsLabel(a.plays) + ")"),
+    "",
+    "Order heard: " + state.answers.map((a) => a.file).join(", "),
+  ];
+  return lines.join("\n");
+}
+
+function payload() {
+  const p = {
+    _subject: "Pre-test results: " + state.name,
+    _template: "table",
+    _captcha: "false",
+    Name: state.name,
+    Started: state.startedAt,
+    Finished: state.finishedAt,
+    "Full mix plays": state.baselinePlays,
+  };
+  for (const a of byFile()) p[a.file] = a.answer + " (" + playsLabel(a.plays) + ")";
+  p["Order heard"] = state.answers.map((a) => a.file).join(", ");
+  return p;
+}
+
+function setStatus(kind, msg) {
+  const el = $("#send-status");
+  el.className = "status" + (kind ? " " + kind : "");
+  $("#send-msg").textContent = msg;
+}
+
+function showSent() {
+  setStatus("ok", "Your answers were sent. Thanks, " + state.name.split(" ")[0] + "!");
+  $("#fallback").hidden = true;
+  $("#reset").hidden = false;
+}
+
+let sending = false;
+async function submit() {
+  if (sending) return;
+  if (!SUBMIT_URL) {
+    setStatus("bad", "Your answers are ready to send.");
+    $("#fallback").hidden = false;
+    $("#retry").hidden = true;
+    $("#reset").hidden = false;
+    return;
+  }
+  sending = true;
+  setStatus("", "Sending your answers…");
+  $("#fallback").hidden = true;
+  $("#reset").hidden = true;
+  try {
+    const res = await fetch(SUBMIT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload()),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || String(body.success) !== "true") throw new Error(body.message || res.status);
+    state.sent = true;
+    save();
+    showSent();
+  } catch (err) {
+    setStatus("bad", "Your answers couldn't be sent automatically.");
+    $("#fallback").hidden = false;
+    $("#retry").hidden = false;
+    $("#reset").hidden = false;
+  } finally {
+    sending = false;
+  }
+}
+
+$("#retry").addEventListener("click", submit);
+$("#copy").addEventListener("click", () => {
+  const ta = $("#results-text");
+  const done = () => { $("#copy").textContent = "Copied"; setTimeout(() => ($("#copy").textContent = "Copy answers"), 2000); };
+  const fallback = () => { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) {} };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value).then(done, fallback);
+  } else {
+    fallback();
+  }
+});
+$("#reset").addEventListener("click", () => {
+  state = freshState();
+  save();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
