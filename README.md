@@ -7,7 +7,7 @@ A blind listening test that runs in a browser (phone or desktop).
 3. For each take they pick what's been removed: Overheads, Kick, Snare, Toms, Rhythm Electric Guitars, Lead Electric Guitar, or Bass Guitar. Answers lock when they move on.
 4. When they finish, their results are emailed to you through [FormSubmit](https://formsubmit.co). Each email lists the name, each **file name** with the answer given and how many times it was played, and the order the takes were heard in. Takes are only ever shown as "Take 1 of 7" and so on, so the participant never sees file names.
 
-If a send fails or gets no reply within 15 seconds, the participant sees their results in a box with a Copy button, so nothing is lost. **Try sending again** sends them a second way (a regular form post that passes through formsubmit.co and comes straight back). A reload during the test picks up on the same take, so a reload can't be used to get back to the full mix.
+If a send fails or gets no reply within a minute, the participant sees their results in a box with a Copy button, so nothing is lost. **Try sending again** sends them a second way (a regular form post that passes through formsubmit.co and comes straight back). A reload during the test picks up on the same take, so a reload can't be used to get back to the full mix.
 
 ## Going live (one time)
 
@@ -20,6 +20,6 @@ If a send fails or gets no reply within 15 seconds, the participant sees their r
 
 All settings are at the top of the `<script>` in `index.html`:
 
-- `SUBMIT_TO`: the email address results go to. After activation FormSubmit gives you a random-string alias you can put here instead, to keep your email out of the page code.
+- `SUBMIT_TO`: where results go. It's FormSubmit's private alias for your inbox (from their activation email), so your address isn't in the page code. An email address works here too.
 - `SHUFFLE_SEED`: the number that fixes the take order. Change it for a different order, or set it to `null` for plain a-to-g order. The order is also listed in every results email.
 - `TAKES` / `OPTIONS`: the clip file names (in `audio/`) and the answer choices.

@@ -298,12 +298,12 @@ textarea {
 
 <script>
 // ---- Settings -------------------------------------------------------------
-// Finished results are emailed to this address through FormSubmit
-// (formsubmit.co). After activation you can swap in the random-string alias
-// FormSubmit gives you. Leave empty to skip sending; the participant then
-// gets a copy-and-send box (they also get it if a send fails).
-const SUBMIT_TO = "nathanedwardwalker@gmail.com";
-const SUBMIT_TIMEOUT_MS = 15000;
+// Finished results are emailed through FormSubmit (formsubmit.co). This is
+// FormSubmit's private alias for the inbox they go to, so no email address
+// sits in the page. Leave empty to skip sending; the participant then gets a
+// copy-and-send box (they also get it if a send fails).
+const SUBMIT_TO = "e812de3395f2e85b8d594515e2a3f6d4";
+const SUBMIT_TIMEOUT_MS = 60000; // FormSubmit can take a while to answer
 // The takes play in one fixed shuffled order, the same for everyone. Change
 // the seed to get a different order; set it to null for plain a-to-g order.
 const SHUFFLE_SEED = 23;
@@ -620,9 +620,11 @@ function showSent() {
   $("#reset").hidden = false;
 }
 
-// First try: background request. If it fails or stalls, the participant gets
-// the copy box, and "Try sending again" does a regular form post instead,
-// which leaves the page briefly and comes back to #sent.
+// First try: background request. FormSubmit's reply can't be read from
+// another site, so any answer at all counts as delivered. If it fails or
+// stalls, the participant gets the copy box, and "Try sending again" does a
+// regular form post instead, which leaves the page briefly and comes back
+// to #sent.
 let sending = false;
 async function submit() {
   if (sending) return;
@@ -639,17 +641,16 @@ async function submit() {
   $("#reset").hidden = true;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), SUBMIT_TIMEOUT_MS);
+  const slow = setTimeout(() => setStatus("", "Still sending… this can take up to a minute. Keep this page open."), 6000);
   try {
     const form = new FormData();
     for (const [k, v] of Object.entries(payload())) form.append(k, v);
-    const res = await fetch("https://formsubmit.co/ajax/" + SUBMIT_TO, {
+    await fetch("https://formsubmit.co/ajax/" + SUBMIT_TO, {
       method: "POST",
-      headers: { "Accept": "application/json" },
+      mode: "no-cors",
       body: form,
       signal: ctrl.signal,
     });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok || String(body.success) !== "true") throw new Error(body.message || res.status);
     state.sent = true;
     save();
     showSent();
@@ -660,6 +661,7 @@ async function submit() {
     $("#reset").hidden = false;
   } finally {
     clearTimeout(timer);
+    clearTimeout(slow);
     sending = false;
   }
 }
